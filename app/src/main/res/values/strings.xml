@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Кенгуру</string>
+
+    <string name="first_tab_name">Список</string>
+    <string name="second_tab_name">Карта</string>
+    <string name="connection_error_message">Отсутствует подключение к сети</string>
+
+    <string name="user_marker_title">Вы находитесь примерно здесь</string>
+
+
+    <string-array name="menu_items_name">
+        <item>Магазины</item>
+    </string-array>
+
+
+</resources>
