@@ -1,11 +1,15 @@
 package com.example.jerry.myapplication;
 
+import android.os.AsyncTask;
 import android.support.v7.app.*;
 import android.os.Bundle;
 import android.widget.*;
 import android.view.View;
 import android.content.*;
 import android.net.ConnectivityManager;
+import com.google.android.gms.maps.SupportMapFragment;
+
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -25,12 +29,36 @@ public class MainActivity extends AppCompatActivity {
         return (cm.getActiveNetworkInfo() != null);
     }
 
+    // поток ожидания подключения к сети
+    // выполняет асинхронный http запрос
+    // обновляет список список магазинов в кэш
+    private class CacheUpdater extends AsyncTask<Void, Void, Void> {
+        protected Void doInBackground(Void... params) {
+            while(!network_enabled) {
+                // проверяем подключение к сети
+                network_enabled = isEnabledNetworkConnection();
+                try {
+                    TimeUnit.MILLISECONDS.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+        protected void onPostExecute(Void p) {
+            shops.Load(url, getApplicationContext());
+            is_data_empty = shops.isEmpty();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         is_data_empty = false;
+        shops = new ShopList();
+        new CacheUpdater().execute();
+
         // диалог настроек позиционирования
         config_alert = UI.GetConfigAlertDialogUI(this);
 
@@ -53,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        shops = new ShopList();
 
         // проверяем подключение к сети
         network_enabled = isEnabledNetworkConnection();
@@ -65,15 +92,9 @@ public class MainActivity extends AppCompatActivity {
             UI.ShowMessage(getResources().getString(R.string.connection_error_message), this);
             is_data_empty = true;
         }
-        else {
-            // Сети нет. Кэш есть
-            if(!network_enabled){
-                shops.InitFromString(strSL);
-            }
-            // Сеть есть. Обновляем кэш
-            else {
-                shops.Load(url, getApplicationContext());
-            }
+        // Сети нет. Кэш есть
+        else if(!strSL.isEmpty()){
+            shops.InitFromString(strSL);
         }
 
         // список магазинов

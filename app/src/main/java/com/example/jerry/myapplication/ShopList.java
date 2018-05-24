@@ -21,6 +21,7 @@ public class ShopList extends ArrayList<Shop> {
     // Инициализирует shops соответствующими объектами
     // Производит парсинг полей объектов shop из строки in
     public void InitFromString(String in){
+        clear();
         String data = StringUtils.substringBetween(in, "[", "]");
         String [] strList = StringUtils.split(data,  "{}");
         for (int i = 0;i<strList.length;++i){
